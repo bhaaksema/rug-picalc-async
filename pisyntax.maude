@@ -1,0 +1,51 @@
+fmod APISYNTAX is
+  inc CINNI .
+  inc CHANSET .
+
+  sorts GuardedTrm Trm Guard SumTrm .
+  subsort GuardedTrm < SumTrm .
+  subsort SumTrm < Trm .
+
+  var S : Subst .
+  vars CX CY CZ : Chan .
+  vars P Q : Trm .
+  vars X Y Z : Qid .
+
+  *** Syntax
+  op _(_) : Chan Qid -> Guard [prec 5] .
+  op tau : -> Guard .
+  op nil : -> Trm .
+  op _<_> : Chan Chan -> Trm [frozen prec 6] .
+  op _+_ : SumTrm SumTrm -> SumTrm [frozen assoc comm prec 10] .
+  op _._ : Guard Trm -> GuardedTrm [frozen prec 7] .
+  op new[_]_ : Qid Trm -> Trm [frozen prec 8] .
+  op _|_ : Trm Trm -> Trm [frozen assoc comm prec 20] .
+  op if_=_then_else_fi : Chan Chan Trm Trm -> Trm [frozen prec 15] .
+  op !_ : Trm -> Trm [frozen prec 12] .
+
+  *** substitution rules
+  op __ : Subst Trm -> Trm [prec 3] .
+
+  eq S nil = nil .
+  eq S (CX < CZ >) = (S CX) < (S CZ) > .
+  eq S (P + Q) = (S P) + (S Q) .
+  eq S (CX(Y) . P ) = (S CX)(Y) . ([lift Y S] P) .
+  eq S (tau . P) = tau . (S P) .
+  eq S (P | Q) = (S P) | (S Q) . *** if Q =/= nil and P =/= nil .
+  eq S (new [X] P) = new [X] ([lift X S] P) .
+  eq S (if CX = CY then P else Q fi) = if (S CX) = (S CY) then (S P) else (S Q) fi .
+  eq S (! P) = ! (S P) .
+
+  *** free names in a term
+  op freenames : Trm -> Chanset .
+
+  eq freenames(nil) = mt .
+  eq freenames(CX < CY >) = CX CY .
+  eq freenames(tau . P) = freenames(P) .
+  eq freenames(CX(Y) . P) = CX down(Y,freenames(P)) .
+  eq freenames(P | Q) = freenames(P) freenames(Q) . *** if P =/= nil and Q =/= nil .
+  eq freenames(P + Q) = freenames(P) freenames(Q) .
+  eq freenames(new [X] P) = down(X,freenames(P)) .
+  eq freenames(if CX = CY then P else Q fi) = CX CY freenames(P) freenames(Q) .
+  eq freenames(! P) = freenames(P) .
+endfm

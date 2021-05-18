@@ -1,0 +1,43 @@
+load chan
+load cinni
+load chanset
+load pisyntax
+load trace
+load pisemantics
+
+*** INP2
+search [mt] ('x{0}('u) . 'u{0} < 'u{0} > + 'y{0}('u) . 'u{0} < 'u{0} >) =>! X:TraceTrm .
+
+*** BINP
+search ['y{0}] 'x{0}('u) . nil =>! X:TraceTrm .
+
+*** PAR 1
+---search [[mt] ('x{0} < 'u{0} > | 'z{0}('u) . nil)] =>! X:TraceTrm .
+
+***PAR 2
+---search [[mt] ((new ['y] 'x{0} < 'y{0} >) | 'y{0}('u) . nil)] =>! X:TraceTrm .
+
+*** RES1 
+search ['y{0}] (new ['u] ('x{0}('u) . 'u{s(0)} < 'u{0} > )) =>! X:TraceTrm .
+*** RES2
+search [mt] new ['x] ('x{0} < 'y{0} > | 'x{0}('u) . nil) =>! X:TraceTrm .
+*** RES3
+search [mt] new ['y] new ['y] ('x{0} < 'y{0} > | 'y{s(0)}('u) . 'u{0} < 'y{0} > ) =>! X:TraceTrm .
+
+*** COM
+search [ mt ] (('y{0}('u) . nil) | ('y{0} < 'x{0} >))  =>! X:TraceTrm .
+*** CLOSE
+search [mt] ((new ['y] 'x{0} < 'y{0} >) | 'x{0}('u) . nil) =>! X:TraceTrm .
+
+*** OPEN
+search [ mt ] new ['x] ('y{0} < 'x{0} >) =>! X:TraceTrm .
+
+*** TAU1 TAU2 OUT IF ELSE REP
+
+*** EXAMPLE 1
+---search [ [mt] (new ['y] ('x{0} < 'y{0} > | ('x{0}('u) . 'u{0} < 'u{0} > + 'y{0}('u) . 'u{0} < 'u{0} >))) ] =>! X:TraceTrm .
+
+*** EXAMPLE 2  INP1 BINP PAR1 PAR2 OUT OPEN COM RES1 RES2 
+---search [ [mt] (new ['y] ('x{0} < 'y{0} > | 'x{0}('u) . nil)) ] =>! X:TraceTrm .
+
+quit

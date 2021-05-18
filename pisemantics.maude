@@ -1,0 +1,77 @@
+mod APISEMANTICS is
+  inc APISYNTAX .
+  inc CHANSET .
+  inc TRACE .
+
+  sorts EnvTrm TraceTrm .
+  subsort EnvTrm < TraceTrm .
+
+  op [_]_ : Chanset Trm -> EnvTrm [frozen] .
+  op {_}_ : Action TraceTrm -> TraceTrm [frozen] .
+  op notinfn : Qid Trm -> Prop .
+
+  vars N : Nat .
+  vars X Y Z : Qid .
+  vars CX CY : Chan .
+  *** changed
+  var CS CS1 CS2 : Chanset .
+  vars A : Action .
+  vars P1 Q1 P Q : Trm .
+  var SUM : SumTrm .
+  var IO : ActionType .
+
+  eq notinfn(X,P) = not X{0} in freenames(P) .
+
+  *** The transition rules. Note that no alpha equivalence
+  *** is used. Rules would not be coherent otherwise.
+  rl [Inp] : [CY CS] (CX(X) . P) => {f(i,CX,CY)} ([CY CS] ([X := CY] P)) .
+
+  rl [Inp] : [CY CS] ((CX(X) . P) + SUM) => {f(i,CX,CY)} ([CY CS] ([X := CY] P)) .
+
+  rl [Tau] : [CS] (tau . P) => { tauAct } ([CS] P) .
+
+  rl [Tau] : [CS] ((tau . P) + SUM) => { tauAct } ([CS] P) .
+
+  crl [BInp] : [CS] P => {b(i,CX,'u)} ['u{0} [shiftup 'u] CS] P1
+    if (not flag in CS) /\ CS1 := flag 'u{0} [shiftup 'u] CS /\
+      [CS1] [shiftup 'u] P => {f(i,CX,'u{0})} [CS1] P1 .
+
+  rl [Out] : [CS] CX < CY > => { f(o,CX,CY) } ([CS] nil) .
+
+  crl [Par] : [CS] (P | Q) => {f(IO,CX,CY)} ([CS] (P1 | Q))
+    if [CS] P => {f(IO,CX,CY)} ([CS] P1) .
+
+  crl [Par] : [CS] (P | Q) => {b(IO,CX,Y)} [Y{0} ([shiftup Y] CS)] (P1 | [shiftup Y] Q)
+    if [CS] P => {b(IO,CX,Y)} ([CS1] P1) .
+
+  crl [Com] : [CS] (P | Q) => {tauAct} ([CS] (P1 | Q1))
+    if [CS] P => {f(o,CX,CY)} ([CS] P1) /\ [CY CS] Q => {f(i,CX,CY)} ([CY CS] Q1) .
+
+  crl [Close] : [CS] (P | Q) => {tauAct} [CS] new [Y] (P1 | Q1)
+    if [CS] P => {b(o,CX,Y)} [CS1] P1 /\
+      [Y{0} [shiftup Y] CS] [shiftup Y] Q => {f(i,CX,Y{0})} [CS2] Q1 .
+
+  crl [Res] : [CS] (new [X] P) => {[shiftdown X] f(IO,CX,CY)} [CS] (new [X] P1)
+    if CS1 := [shiftup X] CS
+      /\ [CS1] P => {f(IO,CX,CY)} [CS1] P1
+      /\ (not X{0} in (CX CY)) .
+
+  crl [Res] : [CS] (new [X] P) => {tauAct} [CS] (new [X] P1)
+    if [CS] P => {tauAct} [CS] P1 .
+
+  *** required only to propogate bound outputs to the top level
+  crl [Res] : [CS] (new [X] P) => {[shiftdown X] b(o,CX,Z)} [Z{0} CS] new [X] ([ Y := Z{0} ] P1)
+    if	Z := genQid(X{0} CS freenames(P)) /\
+      [[shiftup X] CS] P => {b(o,CX,Y)} [CS1] P1 /\ X{0} =/= CX .
+
+  crl [Open] : [CS] (new [X] P) => {[shiftdown X] b(o,CY,X)} [X{0} CS1] P1
+    if CS1 := [shiftup X] CS /\ [CS1] P => {f(o,CY,X{0})} [CS1] P1 /\ X{0} =/= CY .
+
+  crl [If] : [CS1] (if CX = CX then P else Q fi) => {A} [CS2] P1
+    if [CS1] P => {A} [CS2] P1 .
+
+  crl [Else] : [CS1] (if CX = CY then P else Q fi) => {A} [CS2] Q1
+    if CX =/= CY /\ [CS1] Q => {A} [CS2] Q1 .
+
+  crl [Rep] : [CS1] (! P) => {A} [CS2] P1 if [CS1] (P | (! P)) => {A} [CS2] P1 .
+endm
