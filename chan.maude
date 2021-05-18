@@ -15,7 +15,7 @@ fmod CHAN is
   vars a b : Qid .
 
   eq swap(a , m , b{n}) = if a{m} == b{n} then a{s(m)}
-		else if a{s(m)} == b{n} then a{m}
-		else b{n} fi
-	fi .
+    else if a{s(m)} == b{n} then a{m}
+    else b{n} fi
+  fi .
 endfm

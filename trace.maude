@@ -1,11 +1,10 @@
 *** Traces
 
-*** Assume free names in a trace use the least possible index
-*** to espace all binders.
+*** Assume free names in a trace use the least possible index to
+*** espace all binders.
 
-*** do not assume that traces are in alpha-normal form
-*** but if allowed to assume, then some of the bind rules
-*** will become simpler.
+*** do not assume that traces are in alpha-normal form but if allowed
+*** to assume, then some of the bind rules will become simpler.
 
 fmod TRACE is
   protecting CINNI .
