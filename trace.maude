@@ -28,12 +28,12 @@ fmod TRACE is
 
   op notin : Qid Action -> Prop .
 
-  eq notin(X,f(i,X{0},CX)) = false .
-  eq notin(X,f(i,CX,X{0})) = false .
-  eq notin(X,f(o,X{0},CX)) = false .
-  eq notin(X,f(o,CX,X{0})) = false .
-  eq notin(X,b(i,X{0},Y)) = false .
-  eq notin(X,b(o,X{0},Y)) = false .
+  eq notin(X, f(i, X{0}, CX)) = false .
+  eq notin(X, f(i, CX, X{0})) = false .
+  eq notin(X, f(o, X{0}, CX)) = false .
+  eq notin(X, f(o, CX, X{0})) = false .
+  eq notin(X, b(i, X{0}, Y)) = false .
+  eq notin(X, b(o, X{0}, Y)) = false .
 
   ---eq notin(X,b(i,CX,X)) = false .
   ---eq notin(X,b(o,CX,X)) = false .
@@ -42,7 +42,7 @@ fmod TRACE is
   op epsilon : -> Trace .
   op _._ : Trace Trace -> Trace [assoc id: epsilon] .
   op bot : -> Trace .	*** A special element used to signal error
-  op `[_`] : Trace -> TTrace .
+  op [_] : Trace -> TTrace .
 
   ceq TR . bot = bot if TR =/= epsilon . *** the condition is required only
   ceq bot . TR = bot if TR =/= epsilon . *** to aviod non-termination.
@@ -54,16 +54,16 @@ fmod TRACE is
   op __ : Subst Trace -> Trace .
 
   eq S tauAct = tauAct .
-  eq S (f(i,CX,CY)) = f(i,S CX , S CY) .
-  eq S (b(i,CX,a)) = b(i,S CX , a) .
-  eq S (f(o,CX,CY)) = f(o,S CX , S CY) .
-  eq S (b(o,CX,a)) = b(o,S CX , a) .
+  eq S (f(i, CX,CY)) = f(i,S CX, S CY) .
+  eq S (b(i, CX,a)) = b(i,S CX, a) .
+  eq S (f(o, CX,CY)) = f(o,S CX, S CY) .
+  eq S (b(o, CX,a)) = b(o,S CX, a) .
 
   eq S epsilon = epsilon .
-  eq S (f(i,CX,CY) . TR) = f(i,S CX , S CY) . S TR .
-  eq S (b(i,CX,a) . TR) = b(i,S CX , a) . [lift a S ] TR .
-  eq S (f(o,CX,CY) . TR) = f(o,S CX , S CY) . S TR .
-  eq S (b(o,CX,a) . TR) = b(o,S CX , a) . [lift a S ] TR .
+  eq S (f(i, CX, CY) . TR) = f(i, S CX, S CY) . S TR .
+  eq S (b(i, CX, a) . TR) = b(i, S CX, a) . [lift a S ] TR .
+  eq S (f(o, CX, CY) . TR) = f(o, S CX, S CY) . S TR .
+  eq S (b(o, CX, a) . TR) = b(o, S CX, a) . [lift a S ] TR .
 
   *** Alpha equivalence on traces
   ceq [ TR1 . b(IO,CX,a) . TR2 ] = [ TR1 . b(IO,CX,'o) . [ a := 'o{0} ] [ shiftup 'o ] TR2 ] if a =/= 'o .
@@ -75,29 +75,29 @@ fmod TRACE is
   op swap : Qid Trace -> Trace .
   op swap : Qid Nat Trace -> Trace .
 
-  eq bind(a , epsilon) = epsilon .
+  eq bind(a, epsilon) = epsilon .
 
-  eq bind(a , f(i,CX,CY) . TR ) = if CX =/= a{0} then
-    if CY == a{0} then b(i,[shiftdown a] CX , a) . TR
-    else f(i,[shiftdown a] CX , [shiftdown a] CY) . bind(a , TR) fi
+  eq bind(a, f(i,CX,CY) . TR ) = if CX =/= a{0} then
+    if CY == a{0} then b(i,[shiftdown a] CX, a) . TR
+    else f(i,[shiftdown a] CX, [shiftdown a] CY) . bind(a, TR) fi
   else bot fi .
 
-  eq bind(a , f(o,CX,CY) . TR ) = if CX =/= a{0} and CY =/= a{0} then
-    f(o,[shiftdown a] CX , [shiftdown a] CY) . bind(a , TR)
+  eq bind(a, f(o,CX,CY) . TR ) = if CX =/= a{0} and CY =/= a{0} then
+    f(o,[shiftdown a] CX, [shiftdown a] CY) . bind(a, TR)
   else bot fi .
 
-  eq bind(a , b(IO,CX,b) . TR) = if CX =/= a{0} then
-    if a =/= b then b(i,[shiftdown a] CX , b) . bind(a , TR)
-    else b(IO,[shiftdown a] CX , b) . bind(a , swap(a,TR)) fi
+  eq bind(a, b(IO,CX,b) . TR) = if CX =/= a{0} then
+    if a =/= b then b(i,[shiftdown a] CX, b) . bind(a, TR)
+    else b(IO,[shiftdown a] CX, b) . bind(a, swap(a,TR)) fi
   else bot fi .
 
-  eq swap(a , TR) = swap(a , 0 , TR) .
+  eq swap(a, TR) = swap(a, 0, TR) .
 
-  eq swap(a , N , epsilon) = epsilon .
-  eq swap(a , N , f(i,CX,CY) . TR) = f(i,swap(a,N,CX) , swap(a,N,CY)) . swap(a , N , TR) .
-  eq swap(a , N , f(o,CX,CY) . TR) = f(o,swap(a,N,CX) , swap(a,N,CY)) . swap(a , N , TR) .
-  eq swap(a , N , b(i,CX,b) . TR) = if a == b then b(i,swap(a,N,CX) , b) . swap(a , s(N) , TR)
-    else b(i,swap(a,N,CX) , b) . swap(a , N , TR) fi .
-  eq swap(a , N , b(o,CX,b) . TR) = if a == b then b(o,swap(a,N,CX) , b) . swap(a , s(N) , TR)
-    else b(o,swap(a,N,CX) , b) . swap(a , N , TR) fi .
+  eq swap(a, N, epsilon) = epsilon .
+  eq swap(a, N, f(i,CX,CY) . TR) = f(i,swap(a,N,CX), swap(a,N,CY)) . swap(a, N, TR) .
+  eq swap(a, N, f(o,CX,CY) . TR) = f(o,swap(a,N,CX), swap(a,N,CY)) . swap(a, N, TR) .
+  eq swap(a, N, b(i,CX,b) . TR) = if a == b then b(i,swap(a,N,CX), b) . swap(a, s(N), TR)
+    else b(i,swap(a,N,CX), b) . swap(a, N, TR) fi .
+  eq swap(a, N, b(o,CX,b) . TR) = if a == b then b(o,swap(a,N,CX), b) . swap(a, s(N), TR)
+    else b(o,swap(a,N,CX), b) . swap(a, N, TR) fi .
 endfm

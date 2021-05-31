@@ -11,8 +11,8 @@ mod APISEMANTICS is
   op notinfn : Qid Trm -> Prop .
 
   vars N : Nat .
-  vars X Y Z : Qid .
-  vars CX CY : Chan .
+  vars x Y Z : Qid .
+  vars a b : Chan .
   *** changed
   var CS CS1 CS2 : Chanset .
   vars A : Action .
@@ -20,58 +20,58 @@ mod APISEMANTICS is
   var SUM : SumTrm .
   var IO : ActionType .
 
-  eq notinfn(X,P) = not X{0} in freenames(P) .
+  eq notinfn(x, P) = not x{0} in freenames(P) .
 
   *** The transition rules. Note that no alpha equivalence
   *** is used. Rules would not be coherent otherwise.
-  rl [Inp] : [CY CS] (CX(X) . P) => {f(i,CX,CY)} ([CY CS] ([X := CY] P)) .
+  rl [Inp] : [b CS] (a(x) . P) => {f(i, a, b)} ([b CS] ([x := b] P)) .
 
-  rl [Inp] : [CY CS] ((CX(X) . P) + SUM) => {f(i,CX,CY)} ([CY CS] ([X := CY] P)) .
+  rl [Inp] : [b CS] ((a(x) . P) + SUM) => {f(i, a, b)} ([b CS] ([x := b] P)) .
 
   rl [Tau] : [CS] (tau . P) => { tauAct } ([CS] P) .
 
   rl [Tau] : [CS] ((tau . P) + SUM) => { tauAct } ([CS] P) .
 
-  crl [BInp] : [CS] P => {b(i,CX,'u)} ['u{0} [shiftup 'u] CS] P1
+  crl [BInp] : [CS] P => {b(i,a,'u)} ['u{0} [shiftup 'u] CS] P1
     if (not flag in CS) /\ CS1 := flag 'u{0} [shiftup 'u] CS /\
-      [CS1] [shiftup 'u] P => {f(i,CX,'u{0})} [CS1] P1 .
+      [CS1] [shiftup 'u] P => {f(i,a,'u{0})} [CS1] P1 .
 
-  rl [Out] : [CS] CX < CY > => { f(o,CX,CY) } ([CS] nil) .
+  rl [Out] : [CS] a < b > => { f(o,a,b) } ([CS] nil) .
 
-  crl [Par] : [CS] (P | Q) => {f(IO,CX,CY)} ([CS] (P1 | Q))
-    if [CS] P => {f(IO,CX,CY)} ([CS] P1) .
+  crl [Par] : [CS] (P | Q) => {f(IO,a,b)} ([CS] (P1 | Q))
+    if [CS] P => {f(IO,a,b)} ([CS] P1) .
 
-  crl [Par] : [CS] (P | Q) => {b(IO,CX,Y)} [Y{0} ([shiftup Y] CS)] (P1 | [shiftup Y] Q)
-    if [CS] P => {b(IO,CX,Y)} ([CS1] P1) .
+  crl [Par] : [CS] (P | Q) => {b(IO,a,Y)} [Y{0} ([shiftup Y] CS)] (P1 | [shiftup Y] Q)
+    if [CS] P => {b(IO,a,Y)} ([CS1] P1) .
 
   crl [Com] : [CS] (P | Q) => {tauAct} ([CS] (P1 | Q1))
-    if [CS] P => {f(o,CX,CY)} ([CS] P1) /\ [CY CS] Q => {f(i,CX,CY)} ([CY CS] Q1) .
+    if [CS] P => {f(o,a,b)} ([CS] P1) /\ [b CS] Q => {f(i,a,b)} ([b CS] Q1) .
 
   crl [Close] : [CS] (P | Q) => {tauAct} [CS] new [Y] (P1 | Q1)
-    if [CS] P => {b(o,CX,Y)} [CS1] P1 /\
-      [Y{0} [shiftup Y] CS] [shiftup Y] Q => {f(i,CX,Y{0})} [CS2] Q1 .
+    if [CS] P => {b(o,a,Y)} [CS1] P1 /\
+      [Y{0} [shiftup Y] CS] [shiftup Y] Q => {f(i,a,Y{0})} [CS2] Q1 .
 
-  crl [Res] : [CS] (new [X] P) => {[shiftdown X] f(IO,CX,CY)} [CS] (new [X] P1)
-    if CS1 := [shiftup X] CS
-      /\ [CS1] P => {f(IO,CX,CY)} [CS1] P1
-      /\ (not X{0} in (CX CY)) .
+  crl [Res] : [CS] (new [x] P) => {[shiftdown x] f(IO,a,b)} [CS] (new [x] P1)
+    if CS1 := [shiftup x] CS
+      /\ [CS1] P => {f(IO,a,b)} [CS1] P1
+      /\ (not x{0} in (a b)) .
 
-  crl [Res] : [CS] (new [X] P) => {tauAct} [CS] (new [X] P1)
+  crl [Res] : [CS] (new [x] P) => {tauAct} [CS] (new [x] P1)
     if [CS] P => {tauAct} [CS] P1 .
 
   *** required only to propogate bound outputs to the top level
-  crl [Res] : [CS] (new [X] P) => {[shiftdown X] b(o,CX,Z)} [Z{0} CS] new [X] ([ Y := Z{0} ] P1)
-    if	Z := genQid(X{0} CS freenames(P)) /\
-      [[shiftup X] CS] P => {b(o,CX,Y)} [CS1] P1 /\ X{0} =/= CX .
+  crl [Res] : [CS] (new [x] P) => {[shiftdown x] b(o,a,Z)} [Z{0} CS] new [x] ([ Y := Z{0} ] P1)
+    if	Z := genQid(x{0} CS freenames(P)) /\
+      [[shiftup x] CS] P => {b(o,a,Y)} [CS1] P1 /\ x{0} =/= a .
 
-  crl [Open] : [CS] (new [X] P) => {[shiftdown X] b(o,CY,X)} [X{0} CS1] P1
-    if CS1 := [shiftup X] CS /\ [CS1] P => {f(o,CY,X{0})} [CS1] P1 /\ X{0} =/= CY .
+  crl [Open] : [CS] (new [x] P) => {[shiftdown x] b(o,b,x)} [x{0} CS1] P1
+    if CS1 := [shiftup x] CS /\ [CS1] P => {f(o,b,x{0})} [CS1] P1 /\ x{0} =/= b .
 
-  crl [If] : [CS1] (if CX = CX then P else Q fi) => {A} [CS2] P1
+  crl [If] : [CS1] (if a = a then P else Q fi) => {A} [CS2] P1
     if [CS1] P => {A} [CS2] P1 .
 
-  crl [Else] : [CS1] (if CX = CY then P else Q fi) => {A} [CS2] Q1
-    if CX =/= CY /\ [CS1] Q => {A} [CS2] Q1 .
+  crl [Else] : [CS1] (if a = b then P else Q fi) => {A} [CS2] Q1
+    if a =/= b /\ [CS1] Q => {A} [CS2] Q1 .
 
   crl [Rep] : [CS1] (! P) => {A} [CS2] P1 if [CS1] (P | (! P)) => {A} [CS2] P1 .
 endm
