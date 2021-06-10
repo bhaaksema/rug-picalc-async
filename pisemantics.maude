@@ -8,7 +8,6 @@ mod APISEMANTICS is
 
   op [_]_ : Chanset Trm -> EnvTrm [frozen] .
   op {_}_ : Action TraceTrm -> TraceTrm [frozen] .
-  op notinfn : Qid Trm -> Prop .
 
   vars N : Nat .
   vars x Y Z : Qid .
@@ -19,8 +18,6 @@ mod APISEMANTICS is
   vars P1 Q1 P Q : Trm .
   var SUM : SumTrm .
   var IO : ActionType .
-
-  eq notinfn(x, P) = not x{0} in freenames(P) .
 
   *** The transition rules. Note that no alpha equivalence
   *** is used. Rules would not be coherent otherwise.
